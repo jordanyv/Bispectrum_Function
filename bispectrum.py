@@ -1,4 +1,4 @@
-# encoding: utf-8
+## encoding: utf-8
 
 ##############################################################################
 ##     Algorithm based on:                                                                                     #####
@@ -29,17 +29,6 @@ import os
 import sys
 
 ###################################################################################
-                                                              #
-#NSIDE = 64                                                    #This block is for create a thermal noise map
-#mu, sigma = 0, 0.1 # mean and standard deviation              #
-#mapa = np.random.normal(mu, sigma, hp.nside2npix(NSIDE))      # gerar mapas de thermal noise
-#mapa = fits.getdata('/home/jordy/Área de Trabalho/Trabalho/Foregrounds/output/foreground_cube_test.fits')# Usar para os mapas do Lucas(Foregrounds)
-#fits.writeto('ThermalNoise'+".fits", mapa)                                                  #
-##################################################################################
-# '/home/jordy/Área de Trabalho/Trabalho/Foregrounds/output/foreground_cube_test.fits'
-sum = 0                               #The sum variable to compute the sum in bispectrum equation.
-                                      #
-##################################################################################
                                                                            #
 def gauntB(l1, l2, l3, m1, m2, m3, alm1, alm2, alm3):                            #This function is to calculate the total term on equation (2.3) of the paper https://arxiv.org/pdf/1509.08107.pdf
     b_ell = gaunt(l1,l2,l3,m1,m2,m3)*np.real(alm1*alm2*alm3)   #The l1,l2,l3 and m1,m2,m3 refers to a_lm of the spherical harmonics.
@@ -50,13 +39,13 @@ def alm_position(lmax, la, ma):                                            #This
     return alm_position                                                    #
                                                                            #
 ####################################################################################
-def bispectrum_equisize(l0, lmax, path):
+def bispectrum_equisize(l0, lmax, path, nome):
     print('Starting the equisize bispectrum calculus for lmax equals to {} and l0 equals to {}'.format(lmax, l0))
-    mapa = fits.getdata(path)
-    B_ell=[]                                   #Create the vector B_ell to save the bispectrum values.
-    alm1 = hp.map2alm(mapa[1,:])               #Use the function hp.map2alm() to get the a_lm for each map. In this case we use the same map for the 3 a_lm for a equilateral test with same map.
-    alm2 = hp.map2alm(mapa[1,:])               #Retirar o [1,:] para o caso de mapas thermal noise
-    alm3 = hp.map2alm(mapa[1,:])               #Deixar o [1,:] e modificar o número 1(dependendo do mapa que quiser usar) dentro do colchete para o trabalho com mapas de Foregrounds
+    mapa = fits.getdata(path)# Usar para os mapas do Lucas(Foregrounds)
+    B_ell=[]                              #In this block we create the vector B_ell to save the bispectrum values for each l.
+    alm1 = hp.map2alm(mapa[nome,:])               #Use the function hp.map2alm() to get the a_lm for each map. In this case we use the same map for the 3 a_lm for a equilateral test with same map.
+    alm2 = hp.map2alm(mapa[nome,:])               #Retirar o [nome,:] para o caso de mapas thermal noise
+    alm3 = hp.map2alm(mapa[nome,:])               #Deixar o [nome,:] e modificar o número 1(dependendo do mapa que quiser usar) dentro do colchete para o trabalho com mapas de Foregrounds
     l1_ell = []
     l2_ell = []
     l3_ell = []
@@ -64,7 +53,7 @@ def bispectrum_equisize(l0, lmax, path):
     l1 = 0                                                                  #Initial values for l1,l2 and l3.
     l2 = 0                                                                  #
     l3 = 0                                                                  #
-                                                                      
+                                                                        #
     for l1 in range(0, lmax+1):                                             #First loop in l1, because we need to calculate the bispectrum over each l.
         for l2 in range(0, lmax+1):
             for l3 in range(0, lmax+1):
@@ -81,9 +70,9 @@ def bispectrum_equisize(l0, lmax, path):
                                     sum += gauntB(l1, l2, l3, m1, m2, m3, alm1[p1], alm2[p2], alm3[p3])       #
                         B_ell.append(sum)                                                   #Here we use the .append() function to save the value of sum in B_ell vector.
                         sum = 0
-    np.savetxt('B_ellEqui'+".txt", B_ell, delimiter=',')
-    np.savetxt('B_ellTotal123_Equi'+".txt", np.array([B_ell,l1_ell,l2_ell,l3_ell]).T, delimiter=',')
-    Belltxt = "B_ellTotal123_Equi.txt"
+    np.savetxt('B_ellEqui'+str(nome)+".txt", B_ell, delimiter=',')
+    np.savetxt('B_ellTotal123_Equi'+str(nome)+".txt", np.array([B_ell,l1_ell,l2_ell,l3_ell]).T, delimiter=',')
+    Belltxt = "B_ellTotal123_Equi"+str(nome)+'.txt'
     pathbe = os.getcwd() + '/' + Belltxt
     print('Finishing the calculus')                                                       #
 
@@ -154,23 +143,24 @@ def bispectrum_equisize(l0, lmax, path):
     #print Xarr.size, Bellmatrix[0,:].size
     #plt.colormap()
     plt.colorbar(cp)
-    plt.title("Contour plot of Equisize Bispectrum")
+    plt.title("Contour plot of Equisize Bispectrum"+str(nome))
     plt.xlabel('ell2-ell23')
     plt.ylabel('ell1')
     #plt.set_zlim=(-6e-18,6e-18)
     #plt.figure(figsize=(21, 10))
-    plt.savefig('Bispectrum_EquiContour.png')
+    plt.savefig('Bispectrum_EquiContour_'+str(nome)+".png")
 
     print('Finishing function for equisize bispectrum calculus')
 
+###################################################################################################################################################
 
-def bispectrum_isoceles(lmax, path):
-    print('Starting the equisize bispectrum calculus for lmax equals to {}'.format(lmax))
+def bispectrum_isoceles(lmax, path, nome):
+    print('Starting the isoceles bispectrum calculus for lmax equals to {}'.format(lmax))
     mapa = fits.getdata(path)# Usar para os mapas do Lucas(Foregrounds)
     B_ell=[]                              #In this block we create the vector B_ell to save the bispectrum values for each l.
-    alm1 = hp.map2alm(mapa[1,:])               #Use the function hp.map2alm() to get the a_lm for each map. In this case we use the same map for the 3 a_lm for a equilateral test with same map.
-    alm2 = hp.map2alm(mapa[1,:])               #Retirar o [1,:] para o caso de mapas thermal noise
-    alm3 = hp.map2alm(mapa[1,:])               #Deixar o [1,:] e modificar o número 1(dependendo do mapa que quiser usar) dentro do colchete para o trabalho com mapas de Foregrounds
+    alm1 = hp.map2alm(mapa[nome,:])               #Use the function hp.map2alm() to get the a_lm for each map. In this case we use the same map for the 3 a_lm for a equilateral test with same map.
+    alm2 = hp.map2alm(mapa[nome,:])               #Retirar o [nome,:] para o caso de mapas thermal noise
+    alm3 = hp.map2alm(mapa[nome,:])               #Deixar o [nome,:] e modificar o número 1(dependendo do mapa que quiser usar) dentro do colchete para o trabalho com mapas de Foregrounds
     l1_ell = []
     l2_ell = []
     l3_ell = []
@@ -195,9 +185,9 @@ def bispectrum_isoceles(lmax, path):
                                     sum += gauntB(l1, l2, l3, m1, m2, m3, alm1[p1], alm2[p2], alm3[p3])       #
                         B_ell.append(sum)                                                   #Here we use the .append() function to save the value of sum in B_ell vector.
                         sum = 0
-    np.savetxt('B_ellIso'+".txt", B_ell, delimiter=',')
-    np.savetxt('B_ellTotal123_Iso'+".txt", np.array([B_ell,l1_ell,l2_ell,l3_ell]).T, delimiter=',')
-    Belltxt = "B_ellTotal123_Iso.txt"
+    np.savetxt('B_ellIso'+str(nome)+".txt", B_ell, delimiter=',')
+    np.savetxt('B_ellTotal123_Iso'+str(nome)+".txt", np.array([B_ell,l1_ell,l2_ell,l3_ell]).T, delimiter=',')
+    Belltxt = "B_ellTotal123_Iso"+str(nome)+".txt"
     print('Finishing the calculus')                                                             #
                                                                  #
                                                                             #
@@ -247,10 +237,10 @@ def bispectrum_isoceles(lmax, path):
     cp = plt.contourf(Xarr, Yarr, Bellmatrix.T,cmap=cm.viridis )
 
     plt.colorbar(cp)
-    plt.title("Contour plot for Isoceles Bispectrum")
+    plt.title("Contour plot for Isoceles Bispectrum"+str(nome))
     plt.xlabel('ell1=ell2')
     plt.ylabel('ell3')
 
-    plt.savefig('Bispectrum_isoceles_testfore.png')
+    plt.savefig('Bispectrum_isoceles_'+str(nome)+".png")
 
     print('Finishing function for isoceles bispectrum calculus')
