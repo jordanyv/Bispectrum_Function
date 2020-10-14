@@ -85,14 +85,16 @@ def bispectrum_equisize(l0, lmax, path, nome):
     print('Starting contour plots of Equisize Bispectrum')
 
     #load file and matrix - usou loadtxt para evitar problemas com int ou qq outra coisa nos numeros
-    matrixf = np.loadtxt(Belltxt, delimiter=',')
+    matrixf = np.loadtxt("B_ell_ell_Cube_256_Prior_Equisize_Redshift_"+str(nome)+".txt", delimiter=',')
 
 
     #carregou a matriz com os valores de Bell
     matrix_Bell = matrixf[:,0]
     matrix_Bella = matrixf[:,0]
     matrix_Bellt=np.concatenate((matrix_Bell, matrix_Bella), axis=0)
+    #print(matrix_Bellt)
     matrix_Bellt=matrix_Bellt.T
+    #print(matrix_Bellt)
 
     #carregou a matriz com os valores de l1
     matrix_ell1 = matrixf[:,1]
@@ -133,22 +135,24 @@ def bispectrum_equisize(l0, lmax, path, nome):
     Bellmatrix = np.zeros((Xarr.size,Yarr.size))
     #print Bellmatrix
 
-    for i in np.arange(matrix_Bellt.size):
-        #print int(matrix_ell23[i]),int(matrix_ell1[i])
-        Bellmatrix[int(matrix_ell23t[i]),int(matrix_ell1t[i])]=matrix_Bellt[i]
-        #Bellmatrix[]
-    #print Bellmatrix
-
-    cp = plt.contourf(Xarr, Yarr, Bellmatrix.T,cmap=cm.inferno )
+    for i in np.arange(Xarr.size):
+        for k in np.arange(Yarr.size):
+            for j in np.arange(matrix_Bellt.size):
+                if ((Yarr[k]==matrix_ell1t[j]) and (Xarr[i]==matrix_ell23t[j])):
+                    Bellmatrix[i,k]=matrix_Bellt[j]
+    
+    #plt.figure(figsize=(10, 8))
+    cp = plt.contourf(Xarr, Yarr, Bellmatrix.T)
     #print Xarr.size, Bellmatrix[0,:].size
     #plt.colormap()
     plt.colorbar(cp)
-    plt.title("Contour plot of Equisize Bispectrum"+str(nome))
-    plt.xlabel('ell2-ell23')
-    plt.ylabel('ell1')
+    #plt.gca().invert_yaxis()
+    plt.title("Bispectrum Equisize "+str(nome), fontsize=12)
+    plt.xlabel('$\ell_2$-$\ell_3$')
+    plt.ylabel('$\ell_1$')
     #plt.set_zlim=(-6e-18,6e-18)
-    #plt.figure(figsize=(21, 10))
-    plt.savefig('Bispectrum_EquiContour_'+str(nome)+".png")
+    plt.savefig('Bispectrum_Equisize_'+str(nome)+'.png')
+    plt.clf()
 
     print('Finishing function for equisize bispectrum calculus')
 
@@ -196,51 +200,51 @@ def bispectrum_isoceles(lmax, path, nome):
     ###################################################################################
 
     print('Starting contour plots of Isoceles Bispectrum')
-
-    matrixf = np.loadtxt(Belltxt, delimiter=',')
+    matrixfi = np.loadtxt("B_ell_ell_Isosceles_prior_maps_Cubo_Jordany_128_Redshift_"+str(nome)+".txt", delimiter=',')
 
     #Load Bell values
-    matrix_Bell = matrixf[:,0]
-    matrix_Bella = matrixf[:,0]
-    matrix_Bellt=np.concatenate((matrix_Bell, matrix_Bella), axis=0)
-    matrix_Bellt=matrix_Bellt.T
+    matrix_Belli = matrixfi[:,0]
+    matrix_Bellia = matrixfi[:,0]
+    matrix_Bellit=np.concatenate((matrix_Belli, matrix_Bellia), axis=0)
+    matrix_Bellit=matrix_Bellit.T
 
     #Load values ell3
-    matrix_ell3 = matrixf[:,3]
-    matrix_ell3a = matrixf[:,3]
-    matrix_ell3t=np.concatenate((matrix_ell3, matrix_ell3a), axis=0)
+    matrix_elli3 = matrixfi[:,3]
+    matrix_elli3a = matrixfi[:,3]
+    matrix_elli3t=np.concatenate((matrix_elli3, matrix_elli3a), axis=0)
 
     #load values of ell1 and ell2. These values should be mirrored for triangle contour
-    matrix_ell12 = matrixf[:,1]
-    matrix_ell12a = matrixf[:,2]
-    matrix_ell12t=np.concatenate((matrix_ell12, matrix_ell12a), axis=0)
+    matrix_elli12 = matrixfi[:,1]
+    matrix_elli12a = matrixfi[:,2]
+    matrix_elli12t=np.concatenate((matrix_elli12, matrix_elli12a), axis=0)
 
     #matrix l3
     #set the x dimension form matrix shape
-    Y =matrix_ell3t
-    a = Y.max()
-    b = np.min(Y)
-    Yarr = np.arange(int(b),int(a)+1)
+    Yi =matrix_elli3t
+    a = Yi.max()
+    b = np.min(Yi)
+    Yiarr = np.arange(int(b),int(a)+1)
 
     #matrix_ell1 = matrixell2
     #set the x dimension form matrix shape
-    X =matrix_ell12t
-    a = X.max()
-    b = np.min(X)
-    Xarr = np.arange(int(b),int(a)+1)
-    sizex = Xarr.size
+    Xi =matrix_elli12t
+    a = Xi.max()
+    b = np.min(Xi)
+    Xiarr = np.arange(int(b),int(a)+1)
+    sizex = Xiarr.size
 
-    Bellmatrix = np.zeros((Xarr.size,Yarr.size))
-    for i in np.arange(matrix_Bellt.size):
-        Bellmatrix[int(matrix_ell12t[i]),int(matrix_ell3t[i])]=matrix_Bellt[i]
+    Bellmatrixi = np.zeros((Xiarr.size,Yiarr.size))
+    for i in np.arange(matrix_Bellit.size):
+        Bellmatrixi[int(matrix_elli12t[i]),int(matrix_elli3t[i])]=matrix_Bellit[i]
 
-    cp = plt.contourf(Xarr, Yarr, Bellmatrix.T,cmap=cm.viridis )
+    cp = plt.contourf(Xiarr, Yiarr, Bellmatrixi.T,cmap=cm.viridis )
 
     plt.colorbar(cp)
-    plt.title("Contour plot for Isoceles Bispectrum"+str(nome))
-    plt.xlabel('ell1=ell2')
-    plt.ylabel('ell3')
+    plt.title("Bispectrum Isosceles"+str(nome))
+    plt.xlabel('$\ell_1=\ell_2$')
+    plt.ylabel('$\ell_3$')
 
-    plt.savefig('Bispectrum_isoceles_'+str(nome)+".png")
+    plt.savefig('Bispectrum_Isosceles_'+str(nome)+".png")
+    plt.clf()
 
     print('Finishing function for isoceles bispectrum calculus')
